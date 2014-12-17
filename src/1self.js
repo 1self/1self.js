@@ -11,7 +11,7 @@
 
     var API_ENDPOINT = "http://api-staging.1self.co";
 
-    var OneSelf = function(config) {
+    var lib1self = function(config) {
         this.TYPE_COUNT = 0;
         this.TYPE_SUM = 1;
         this.config = config || {
@@ -20,7 +20,7 @@
         return this;
     };
 
-    OneSelf.prototype.configure = function(data) {
+    lib1self.prototype.configure = function(data) {
         var self = this;
         if (typeof data !== 'undefined') {
             Object.keys(data).forEach(function(key) {
@@ -30,7 +30,7 @@
         return this.config;
     };
 
-    OneSelf.prototype.registerStream = function() {
+    lib1self.prototype.registerStream = function() {
         if (!this.config.appId || !this.config.appSecret) {
             throw new Error("Set appId and appSecret");
         }
@@ -63,7 +63,7 @@
         return promise;
     };
 
-    OneSelf.prototype.setObjectTags = function(object_tags) {
+    lib1self.prototype.setObjectTags = function(object_tags) {
         if (!object_tags.length) {
             throw new Error("Invalid tag specification");
         }
@@ -71,7 +71,7 @@
         this.config.eventData.object_tags = object_tags;
     }
 
-    OneSelf.prototype.setActionTags = function(action_tags) {
+    lib1self.prototype.setActionTags = function(action_tags) {
         if (!action_tags.length) {
             throw new Error("Invalid tag specification");
         }
@@ -79,7 +79,7 @@
         this.config.eventData.action_tags = action_tags;
     }
 
-    OneSelf.prototype.sendEvent = function(data, ISOdateTimeString) {
+    lib1self.prototype.sendEvent = function(data, ISOdateTimeString) {
         if (!this.config.streamid || !this.config.eventData || !this.config.eventData.action_tags || !this.config.eventData.object_tags) {
             throw new Error("Requires streamid, object tags and action tags to be set");
         }
@@ -122,7 +122,7 @@
         return promise;
     }
 
-    OneSelf.prototype.getBarchartURL = function(operation, property) {
+    lib1self.prototype.getBarchartURL = function(operation, property) {
         if (!this.config.streamid || !this.config.eventData.action_tags || !this.config.eventData.object_tags) {
             throw new Error("Requires streamid, object tags and action tags to be set");
         }
@@ -148,5 +148,5 @@
         }
     }
 
-    return OneSelf;
+    return lib1self;
 }));
