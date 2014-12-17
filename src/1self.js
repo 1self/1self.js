@@ -4,7 +4,7 @@
     } else if (typeof exports === "object") {
         module.exports = factory();
     } else {
-        root.OneSelf = factory();
+        root.lib1self = factory();
     }
 }(this, function(context) {
     'use strict';
