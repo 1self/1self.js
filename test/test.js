@@ -1,6 +1,14 @@
 var assert = require("assert");
 
-var lib1self = require("../src/1self")
+var Lib1self = require("../src/1self")
 
-describe('OneSelf', function() {
+describe('1Self', function() {
+	describe('Initialize', function() {
+		it('should set config to values passed', function() {
+			var lib1self = new Lib1self({
+				appId: '12345'
+			});
+			assert.equal('12345', lib1self.config.appId);
+		});
+	});
 })

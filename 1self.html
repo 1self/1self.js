@@ -11,22 +11,16 @@
 			"appSecret": "app-secret-244f9e0c2a2a9cab9c358349b8fa3a30c5a123bb7ae562df1b3559358b43cd1f"
 		});
 
-		lib1self.setActionTags(['test']);
-		lib1self.setObjectTags(['test']);
+		var helloWorldObjectTags = ["computer", "program", "helloworld"];
+		var helloWorldActionTags = ["write"];
 
-		lib1self.registerStream()
-			.then(function(response) {
-				return lib1self.sendEvent({
-					'count': 100
-				});
-			})
-			.then(function(response) {
-				console.log(lib1self.getBarchartURL(lib1self.TYPE_COUNT));
-				console.log(lib1self.getBarchartURL(lib1self.TYPE_SUM, 'count'));
-			})
-			.catch(function(error) {
-				console.error(error);
-			});
+		var event = {
+				objectTags: helloWorldObjectTags,
+				actionTags: helloWorldActionTags,
+				properties: {
+					linesOfCode: 10
+				}
+			}
 	</script>
 </head>
 <body>

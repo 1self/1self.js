@@ -12,13 +12,31 @@
     var API_ENDPOINT = "http://api-staging.1self.co";
 
     var lib1self = function(config) {
-        this.TYPE_COUNT = 0;
-        this.TYPE_SUM = 1;
-        this.config = config || {
-            'eventData': {}
-        };
+        this.OBJECT_TAGS = [];
+        this.ACTION_TAGS = [];
+
+        if(!window.localStorage.config) {
+            window.localStorage.config = "{}";
+        }
+
+        var saved_config = JSON.parse(window.localStorage.config);
+        if(typeof config === 'object') {
+            var keys = Object.keys(config);
+            for(var i = 0; i < keys.length; i++){
+                var key = keys[i];
+                saved_config[key] = config[key];
+            }   
+        }
+
+        window.localStorage.config = JSON.stringify(saved_config);
+        this.config = saved_config;
         return this;
     };
+
+    lib1self.prototype.saveConfig = function(){
+        window.localStorage.config = JSON.stringify(this.config);
+        return this;
+    }
 
     lib1self.prototype.configure = function(data) {
         var self = this;
@@ -27,80 +45,58 @@
                 self.config[key] = data[key];
             });
         }
-        return this.config;
+        this.saveConfig();
+        return this;
     };
 
-    lib1self.prototype.registerStream = function() {
+    lib1self.prototype.registerStream = function(callback) {
         if (!this.config.appId || !this.config.appSecret) {
             throw new Error("Set appId and appSecret");
         }
 
         var self = this;
 
-        var promise = new Promise(function(resolve, reject) {
-            var req = new XMLHttpRequest();
+        var req = new XMLHttpRequest();
 
-            req.open("POST", API_ENDPOINT + "/v1/streams", true);
-            req.setRequestHeader("Authorization", self.config.appId + ":" + self.config.appSecret);
-            req.onload = function() {
-                if (req.readyState == 4 && req.status == 200) {
-                    var response = JSON.parse(req.response);
-                    self.config['streamid'] = response.streamid;
-                    self.config['readToken'] = response.readToken;
-                    self.config['writeToken'] = response.writeToken;
+        req.open("POST", API_ENDPOINT + "/v1/streams", true);
+        req.setRequestHeader("Authorization", self.config.appId + ":" + self.config.appSecret);
+        req.onload = function() {
+            if (req.readyState == 4 && req.status == 200) {
+                var response = JSON.parse(req.response);
+                self.configure({'streamid': response.streamid});
+                self.configure({'readToken': response.readToken});
+                self.configure({'writeToken': response.writeToken});
 
-                    resolve(req.responseText);
-                } else {
-                    reject(new Error(req.statusText));
-                }
-            };
-            req.onerror = function() {
-                reject(Error("Network Error"));
-            };
-
-            req.send();
-        });
-        return promise;
+                callback(response);
+            } else {
+                throw (new Error(req.statusText));
+            }
+        };
+        req.onerror = function() {
+            throw (Error("Network Error"));
+        };
+        req.send();
+        return this;
     };
 
-    lib1self.prototype.setObjectTags = function(object_tags) {
-        if (!object_tags.length) {
-            throw new Error("Invalid tag specification");
-        }
-        if(!this.config.eventData) this.config.eventData = {};
-        this.config.eventData.object_tags = object_tags;
-    }
-
-    lib1self.prototype.setActionTags = function(action_tags) {
-        if (!action_tags.length) {
-            throw new Error("Invalid tag specification");
-        }
-        if(!this.config.eventData) this.config.eventData = {};
-        this.config.eventData.action_tags = action_tags;
-    }
-
-    lib1self.prototype.sendEvent = function(data, ISOdateTimeString) {
-        if (!this.config.streamid || !this.config.eventData || !this.config.eventData.action_tags || !this.config.eventData.object_tags) {
-            throw new Error("Requires streamid, object tags and action tags to be set");
-        }
-
-        if (!ISOdateTimeString) {
-            ISOdateTimeString = (new Date()).toISOString();
-        }
+    lib1self.prototype.send = function(event, callback) {
 
         var self = this;
-        var promise = new Promise(function(resolve, reject) {
+        var sendEvent = function() {
+            if (!event.dateTime) {
+                event.dateTime = (new Date()).toISOString();
+            }
+
+            if(!event.actionTags && this.ACTION_TAGS.length > 0) {
+                event.actionTags = this.ACTION_TAGS;
+            }
+
+            if(!event.objectTags && this.OBJECT_TAGS.length > 0) {
+                event.objectTags = this.OBJECT_TAGS;
+            }
+
             var req = new XMLHttpRequest();
             var url = API_ENDPOINT + "/v1/streams/" + self.config.streamid + "/events/";
-
-            var event = {
-                "dateTime": ISOdateTimeString,
-                "source": self.config.appName,
-                "version": self.config.appVersion,
-                "objectTags": self.config.eventData.object_tags,
-                "actionTags": self.config.eventData.action_tags,
-                "properties": data
-            };
 
             req.open("POST", url, true);
             req.setRequestHeader("Authorization", self.config.writeToken);
@@ -108,23 +104,67 @@
 
             req.onload = function() {
                 if (req.readyState == 4 && req.status == 200) {
-                    resolve(req.responseText);
+                    if(callback){
+                        callback(req.responseText);
+                    }
                 } else {
-                    reject(new Error(req.statusText));
+                    throw (new Error(req.statusText));
                 }
             };
             req.onerror = function() {
-                reject(Error("Network Error"));
+                throw (Error("Network Error"));
             };
 
             req.send(JSON.stringify(event));
-        });
-        return promise;
+        };
+
+        var streamid = this.config.streamid;
+        if (!streamid) {
+            this.registerStream(function(response) {
+                streamid = response.streamid;
+                sendEvent();
+            })
+        } else {
+            sendEvent();
+        }
+        return this;
+    };
+
+    lib1self.prototype.objectTags = function(tags) {
+        this.OBJECT_TAGS = tags;
+        return this;
+    };
+
+    lib1self.prototype.actionTags = function(tags) {
+        this.ACTION_TAGS = tags;
+        return this;
+    };
+
+    lib1self.prototype.sum = function(property) {
+        this.FUNCTION_TYPE = 'sum';
+        this.SELECTED_PROP = property;
+        return this;
+    };
+
+    lib1self.prototype.count = function() {
+        this.FUNCTION_TYPE = 'count';
+        return this;
+    };
+
+    lib1self.prototype.barChart = function() {
+        this.CHART_TYPE = 'barchart';
+        return this;
     }
 
-    lib1self.prototype.getBarchartURL = function(operation, property) {
-        if (!this.config.streamid || !this.config.eventData.action_tags || !this.config.eventData.object_tags) {
-            throw new Error("Requires streamid, object tags and action tags to be set");
+    lib1self.prototype.json = function() {
+        this.CHART_TYPE = 'type/json';
+        return this;
+    };
+
+    lib1self.prototype.url = function() {
+        //Check
+        if(this.OBJECT_TAGS.length == 0 || this.ACTION_TAGS.length == 0 || !this.config.streamid || !this.FUNCTION_TYPE || !this.CHART_TYPE) {
+            throw (new Error("Can't construct URL"));
         }
 
         var stringifyTags = function(tags) {
@@ -135,18 +175,12 @@
             return str.slice(0,-1);
         }
 
-        var object_tags_str = stringifyTags(this.config.eventData.object_tags);
-        var action_tags_str = stringifyTags(this.config.eventData.action_tags);
+        var object_tags_str = stringifyTags(this.OBJECT_TAGS);
+        var action_tags_str = stringifyTags(this.ACTION_TAGS);
 
-        if(operation === this.TYPE_COUNT) {
-            return API_ENDPOINT + "/v1/streams/" + this.config.streamid + "/events/" + object_tags_str + "/" + action_tags_str + "/count/daily/barchart";
-        } else if(operation === this.TYPE_SUM) {
-            if (typeof property === 'undefined') {
-                throw new Error("property not specified");
-            }
-            return API_ENDPOINT + "/v1/streams/" + this.config.streamid + "/events/" + object_tags_str + "/" + action_tags_str + "/sum("+ property +")/daily/barchart";
-        }
-    }
+        var url = API_ENDPOINT + "/v1/streams/" + this.config.streamid + "/events/" + object_tags_str + "/" + action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE;
+        return url;
+    };
 
     return lib1self;
 }));
