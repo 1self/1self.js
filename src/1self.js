@@ -9,7 +9,7 @@
 }(this, function(context) {
     'use strict';
 
-    var API_ENDPOINT = "http://api-staging.1self.co";
+    var API_ENDPOINT = "https://api-staging.1self.co";
 
     var lib1self = function(config) {
         this.OBJECT_TAGS = [];
@@ -141,7 +141,7 @@
     };
 
     lib1self.prototype.sum = function(property) {
-        this.FUNCTION_TYPE = 'sum';
+        this.FUNCTION_TYPE = 'sum(' + property + ')';
         this.SELECTED_PROP = property;
         return this;
     };
