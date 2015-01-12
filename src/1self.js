@@ -11,6 +11,21 @@
 
     var API_ENDPOINT = "https://api-staging.1self.co";
 
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+            console.log("Geolocation is not supported by this browser.");
+        }
+    }
+
+    function showPosition(position) {
+        window.latitude = position.coords.latitude;
+        window.longitude = position.coords.longitude;
+    }
+
+    window.addEventListener('load', getLocation, false);
+
     var lib1self = function(config) {
         this.OBJECT_TAGS = [];
         this.ACTION_TAGS = [];
@@ -93,6 +108,13 @@
 
             if(!event.objectTags && this.OBJECT_TAGS.length > 0) {
                 event.objectTags = this.OBJECT_TAGS;
+            }
+
+            if(typeof window.latitude !== 'undefined'){
+                event.location = {
+                    "lat": window.latitude,
+                    "long": window.longitude
+                };
             }
 
             var req = new XMLHttpRequest();
