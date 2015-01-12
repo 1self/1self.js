@@ -41,9 +41,32 @@
 
     var syncService = function () {
 
+        //Load localstorage
+        var loadJSON = function(key) {
+            try{
+                return JSON.parse(window.localStorage[key]);
+            } catch(e) {
+                return {};
+            }
+        };
+
+        //save localstorage
+        var saveJSON = function(obj, key) {
+            window.localStorage[key] = JSON.stringify(obj);
+        }
+
+        var SAVED_STATE = function(){
+            var stored = loadJSON('1self');
+            if(typeof stored.events === 'undefined') {
+                stored.events = [];
+            }
+            return stored;
+        }();
+
         // logEvent
-        var logEvents = function (event) {
-            localStorage.events.push(event)
+        this.logEvents = function (event) {
+            SAVED_STATE.events.push(event);
+            saveJSON(SAVED_STATE);
         }
 
         // pollForAnyEvent
@@ -121,7 +144,7 @@
 
     lib1self.prototype.sendEvent = function (event, callback) {
 
-        var api_endpoint = API_ENDPOINT + "/v1/streams/" + this.config.streamid + "/events/";
+        var event_api_endpoint = API_ENDPOINT + "/v1/streams/" + this.config.streamid + "/events/";
 
         if (!event.dateTime) {
             event.dateTime = (new Date()).toISOString();
@@ -144,10 +167,10 @@
         if (!streamid) {
             this.registerStream(function (response) {
                 streamid = response.streamid;
-                send(api_endpoint, event, headers, callback);
+                send(event_api_endpoint, event, headers, callback);
             })
         } else {
-            send(api_endpoint, event, headers, callback);
+            send(event_api_endpoint, event, headers, callback);
         }
         return this;
     };
