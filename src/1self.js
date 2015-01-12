@@ -1,4 +1,4 @@
-(function(root, factory) {
+(function (root, factory) {
     if (typeof define === "function" && define.amd) {
         define([], factory);
     } else if (typeof exports === "object") {
@@ -6,26 +6,66 @@
     } else {
         root.lib1self = factory();
     }
-}(this, function(context) {
+}(this, function (context) {
     'use strict';
 
     var API_ENDPOINT = "https://api-staging.1self.co";
 
-    var lib1self = function(config) {
+    var send = function (endpoint, data, headers, callback) {
+        var req = new XMLHttpRequest();
+
+        req.open("POST", endpoint, true);
+
+        if (typeof headers === "object") {
+            var keys = Object.keys(headers);
+            keys.forEach(function (key) {
+                req.setRequestHeader(key, headers[key]);
+            });
+        }
+
+        req.onload = function () {
+            if (req.readyState == 4 && req.status == 200) {
+                if (callback) {
+                    callback(req.responseText);
+                }
+            } else {
+                throw (new Error(req.statusText));
+            }
+        };
+        req.onerror = function () {
+            throw (Error("Network Error"));
+        };
+
+        req.send(JSON.stringify(data));
+    };
+
+    var syncService = function () {
+
+        // logEvent
+        var logEvents = function (event) {
+            localStorage.events.push(event)
+        }
+
+        // pollForAnyEvent
+        // yes -> sendEvents
+
+    };
+
+    var lib1self = function (config) {
         this.OBJECT_TAGS = [];
         this.ACTION_TAGS = [];
 
-        if(!window.localStorage.config) {
+        if (!window.localStorage.config) {
             window.localStorage.config = "{}";
         }
 
         var saved_config = JSON.parse(window.localStorage.config);
-        if(typeof config === 'object') {
+        if (typeof config === 'object') {
             var keys = Object.keys(config);
-            for(var i = 0; i < keys.length; i++){
+            for (var i = 0; i < keys.length; i++) {
                 var key = keys[i];
                 saved_config[key] = config[key];
-            }   
+            }
         }
 
         window.localStorage.config = JSON.stringify(saved_config);
@@ -33,15 +73,15 @@
         return this;
     };
 
-    lib1self.prototype.saveConfig = function(){
+    lib1self.prototype.saveConfig = function () {
         window.localStorage.config = JSON.stringify(this.config);
         return this;
     }
 
-    lib1self.prototype.configure = function(data) {
+    lib1self.prototype.configure = function (data) {
         var self = this;
         if (typeof data !== 'undefined') {
-            Object.keys(data).forEach(function(key) {
+            Object.keys(data).forEach(function (key) {
                 self.config[key] = data[key];
             });
         }
@@ -49,7 +89,7 @@
         return this;
     };
 
-    lib1self.prototype.registerStream = function(callback) {
+    lib1self.prototype.registerStream = function (callback) {
         if (!this.config.appId || !this.config.appSecret) {
             throw new Error("Set appId and appSecret");
         }
@@ -60,7 +100,7 @@
 
         req.open("POST", API_ENDPOINT + "/v1/streams", true);
         req.setRequestHeader("Authorization", self.config.appId + ":" + self.config.appSecret);
-        req.onload = function() {
+        req.onload = function () {
             if (req.readyState == 4 && req.status == 200) {
                 var response = JSON.parse(req.response);
                 self.configure({'streamid': response.streamid});
@@ -72,107 +112,89 @@
                 throw (new Error(req.statusText));
             }
         };
-        req.onerror = function() {
+        req.onerror = function () {
             throw (Error("Network Error"));
         };
         req.send();
         return this;
     };
 
-    lib1self.prototype.send = function(event, callback) {
+    lib1self.prototype.sendEvent = function (event, callback) {
 
-        var self = this;
-        var sendEvent = function() {
-            if (!event.dateTime) {
-                event.dateTime = (new Date()).toISOString();
-            }
+        var api_endpoint = API_ENDPOINT + "/v1/streams/" + this.config.streamid + "/events/";
 
-            if(!event.actionTags && this.ACTION_TAGS.length > 0) {
-                event.actionTags = this.ACTION_TAGS;
-            }
+        if (!event.dateTime) {
+            event.dateTime = (new Date()).toISOString();
+        }
 
-            if(!event.objectTags && this.OBJECT_TAGS.length > 0) {
-                event.objectTags = this.OBJECT_TAGS;
-            }
+        if (!event.actionTags && this.ACTION_TAGS.length > 0) {
+            event.actionTags = this.ACTION_TAGS;
+        }
 
-            var req = new XMLHttpRequest();
-            var url = API_ENDPOINT + "/v1/streams/" + self.config.streamid + "/events/";
+        if (!event.objectTags && this.OBJECT_TAGS.length > 0) {
+            event.objectTags = this.OBJECT_TAGS;
+        }
 
-            req.open("POST", url, true);
-            req.setRequestHeader("Authorization", self.config.writeToken);
-            req.setRequestHeader("Content-Type", "application/json");
-
-            req.onload = function() {
-                if (req.readyState == 4 && req.status == 200) {
-                    if(callback){
-                        callback(req.responseText);
-                    }
-                } else {
-                    throw (new Error(req.statusText));
-                }
-            };
-            req.onerror = function() {
-                throw (Error("Network Error"));
-            };
-
-            req.send(JSON.stringify(event));
+        var headers = {
+            "Authorization": this.config.writeToken,
+            "Content-Type": "application/json"
         };
 
         var streamid = this.config.streamid;
         if (!streamid) {
-            this.registerStream(function(response) {
+            this.registerStream(function (response) {
                 streamid = response.streamid;
-                sendEvent();
+                send(api_endpoint, event, headers, callback);
             })
         } else {
-            sendEvent();
+            send(api_endpoint, event, headers, callback);
         }
         return this;
     };
 
-    lib1self.prototype.objectTags = function(tags) {
+    lib1self.prototype.objectTags = function (tags) {
         this.OBJECT_TAGS = tags;
         return this;
     };
 
-    lib1self.prototype.actionTags = function(tags) {
+    lib1self.prototype.actionTags = function (tags) {
         this.ACTION_TAGS = tags;
         return this;
     };
 
-    lib1self.prototype.sum = function(property) {
+    lib1self.prototype.sum = function (property) {
         this.FUNCTION_TYPE = 'sum(' + property + ')';
         this.SELECTED_PROP = property;
         return this;
     };
 
-    lib1self.prototype.count = function() {
+    lib1self.prototype.count = function () {
         this.FUNCTION_TYPE = 'count';
         return this;
     };
 
-    lib1self.prototype.barChart = function() {
+    lib1self.prototype.barChart = function () {
         this.CHART_TYPE = 'barchart';
         return this;
     }
 
-    lib1self.prototype.json = function() {
+    lib1self.prototype.json = function () {
         this.CHART_TYPE = 'type/json';
         return this;
     };
 
-    lib1self.prototype.url = function() {
+    lib1self.prototype.url = function () {
         //Check
-        if(this.OBJECT_TAGS.length == 0 || this.ACTION_TAGS.length == 0 || !this.config.streamid || !this.FUNCTION_TYPE || !this.CHART_TYPE) {
+        if (this.OBJECT_TAGS.length == 0 || this.ACTION_TAGS.length == 0 || !this.config.streamid || !this.FUNCTION_TYPE || !this.CHART_TYPE) {
             throw (new Error("Can't construct URL"));
         }
 
-        var stringifyTags = function(tags) {
+        var stringifyTags = function (tags) {
             var str = "";
-            tags.forEach(function(tag){
+            tags.forEach(function (tag) {
                 str += tag + ',';
             });
-            return str.slice(0,-1);
+            return str.slice(0, -1);
         }
 
         var object_tags_str = stringifyTags(this.OBJECT_TAGS);
