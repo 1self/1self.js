@@ -44,40 +44,42 @@
     var poller = function() {
         if (!lock) {
             var config = loadConfig();
-            var event_api_endpoint = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/batch";
 
-            lock = true;
+            if (typeof config.streamid !== 'undefined') {
+                var event_api_endpoint = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/batch";
 
-            var req = new XMLHttpRequest();
-            req.open("POST", event_api_endpoint, true);
+                var req = new XMLHttpRequest();
+                req.open("POST", event_api_endpoint, true);
 
-            var headers = {
-                "Authorization": config.writeToken,
-                "Content-Type": "application/json"
-            };
-            var keys = Object.keys(headers);
-            keys.forEach(function(key) {
-                req.setRequestHeader(key, headers[key]);
-            });
+                var headers = {
+                    "Authorization": config.writeToken,
+                    "Content-Type": "application/json"
+                };
+                var keys = Object.keys(headers);
+                keys.forEach(function(key) {
+                    req.setRequestHeader(key, headers[key]);
+                });
 
-            req.onload = function() {
-                if (req.readyState == 4 && req.status == 200) {
-                    queue.events = [];
-                    saveJSON(queue, '1self');
+                req.onload = function() {
+                    if (req.readyState == 4 && req.status == 200) {
+                        queue.events = [];
+                        saveJSON(queue, '1self');
+                        lock = false;
+                    } else {
+                        lock = false;
+                        console.log(new Error(req.statusText + "\n" + req.responseText));
+                    }
+                };
+
+                req.onerror = function() {
+                    console.log(new Error("Network Error"));
                     lock = false;
-                } else {
-                    lock = false;
-                    console.log(new Error(req.statusText + "\n" + req.responseText));
+                };
+
+                if (queue.events.length > 0) {
+                    lock = true;
+                    req.send(JSON.stringify(queue.events));
                 }
-            };
-
-            req.onerror = function() {
-                console.log(new Error("Network Error"));
-                lock = false;
-            };
-
-            if(queue.events.length > 0){ 
-                req.send(JSON.stringify(queue.events));
             }
             setTimeout(poller, 2000);
         }
@@ -103,9 +105,7 @@
         window.localStorage.config = JSON.stringify(saved_config);
         this.config = saved_config;
 
-        if(typeof this.config.streamid !== 'undefined') {
-            poller();
-        }
+        poller();
         return this;
     };
 
@@ -131,6 +131,11 @@
     };
 
     lib1self.prototype.registerStream = function(callback) {
+        if (typeof this.config.streamid !== 'undefined') {
+            callback(this.config);
+            return this;
+        }
+
         if (!this.config.appId || !this.config.appSecret) {
             throw new Error("Set appId and appSecret");
         }
@@ -154,7 +159,10 @@
                     'writeToken': response.writeToken
                 });
 
-                callback(response);
+                if(callback){
+                    callback(response);
+                }
+
             } else {
                 throw (new Error(req.statusText));
             }
@@ -186,19 +194,10 @@
             "Content-Type": "application/json"
         };
 
-        var streamid = this.config.streamid;
-        if (!streamid) {
-            var self = this;
-            this.registerStream(function(response) {
-                self.config.streamid = response.streamid;
-                queueEvent(event);
-                poller();
-                callback();
-            })
-        } else {
-            queueEvent(event);
-            callback();
-        }
+        
+        queueEvent(event);
+        callback();
+        
         return this;
     };
 
