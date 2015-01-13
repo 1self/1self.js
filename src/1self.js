@@ -56,7 +56,11 @@
     };
 
     var lock = false;
-    var poller = function() {
+    var sendEventQueue = function(callback) {
+        var doCallback = function(e){
+            if(callback) callback(e);
+        };
+
         if (!lock) {
             var config = loadConfig();
 
@@ -79,25 +83,53 @@
                     if (req.readyState == 4 && req.status == 200) {
                         queue.events = [];
                         saveJSON(queue, '1self');
-                        lock = false;
+                        doCallback(true);
                     } else {
-                        lock = false;
+                        doCallback(false);
                         console.log(new Error(req.statusText + "\n" + req.responseText));
                     }
+                    lock = false;
                 };
 
                 req.onerror = function() {
                     console.log(new Error("Network Error"));
                     lock = false;
+                    doCallback(false);
                 };
 
                 if (queue.events.length > 0) {
                     lock = true;
                     req.send(JSON.stringify(queue.events));
+                } else {
+                    doCallback(false);
                 }
             }
-            setTimeout(poller, 2000);
         }
+    };
+
+    var poller = function() {
+        console.log("Start poller");
+        var initialTimeout = 1000,
+            delta = 1 * 1000,
+            interval = null;
+
+        var timeout = initialTimeout;
+        var poll = function() {
+            sendEventQueue(function(sent) {
+                if (sent) {
+                    clearInterval(interval);
+                    timeout = initialTimeout;
+                    console.log("Sent!");
+                } else {
+                    clearInterval(interval);
+                    timeout = timeout + delta;
+                    console.log("Not sent :(");
+                }
+                console.log("Timeout: " + timeout);
+                interval = setInterval(poll, timeout);
+            })
+        };
+        interval = setInterval(poll, initialTimeout);
     };
 
     var lib1self = function(config) {
@@ -179,11 +211,13 @@
                 }
 
             } else {
-                throw (new Error(req.statusText));
+                console.log(new Error(req.statusText));
+                callback(null);
             }
         };
         req.onerror = function() {
-            throw (Error("Network Error"));
+            console.log(Error("Network Error"));
+            callback(null);
         };
         req.send();
         return this;
@@ -216,9 +250,8 @@
             "Content-Type": "application/json"
         };
 
-
         queueEvent(event);
-        callback();
+        sendEventQueue(callback);
 
         return this;
     };
