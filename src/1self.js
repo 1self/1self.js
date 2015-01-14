@@ -62,6 +62,7 @@
         };
 
         if (!lock) {
+            var queuelength = 0;
             var config = loadConfig();
 
             if (typeof config.streamid !== 'undefined') {
@@ -81,7 +82,7 @@
 
                 req.onload = function() {
                     if (req.readyState == 4 && req.status == 200) {
-                        queue.events = [];
+                        queue.events = queue.events.slice(queuelength);
                         saveJSON(queue, '1self');
                         doCallback(true);
                     } else {
@@ -97,9 +98,10 @@
                     doCallback(false);
                 };
 
-                if (queue.events.length > 0) {
+                queuelength = queue.events.length;
+                if (queuelength > 0) {
                     lock = true;
-                    req.send(JSON.stringify(queue.events));
+                    req.send(JSON.stringify(queue.events.slice(0,queuelength)));
                 } else {
                     doCallback(false);
                 }
@@ -230,6 +232,19 @@
             event.dateTime = (new Date()).toISOString();
         }
 
+        if(typeof this.config.appName === 'undefined') {
+            callback(new Error("appName not configured"));
+            return this;
+        }
+
+        if(typeof this.config.appVersion === 'undefined') {
+            callback(new Error("appVersion not configured"));
+            return this;
+        }
+
+        event.source = this.config.appName;
+        event.version = this.config.appVersion;
+
         if (!event.actionTags && this.ACTION_TAGS.length > 0) {
             event.actionTags = this.ACTION_TAGS;
         }
@@ -244,6 +259,7 @@
                 "long": window.longitude
             };
         }
+
 
         var headers = {
             "Authorization": this.config.writeToken,
