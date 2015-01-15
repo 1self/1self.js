@@ -87,13 +87,13 @@
                         doCallback(true);
                     } else {
                         doCallback(false);
-                        console.log(new Error(req.statusText + "\n" + req.responseText));
+                        //console.log(new Error(req.statusText + "\n" + req.responseText));
                     }
                     lock = false;
                 };
 
                 req.onerror = function() {
-                    console.log(new Error("Network Error"));
+                    //console.log(new Error("Network Error"));
                     lock = false;
                     doCallback(false);
                 };
@@ -226,12 +226,12 @@
                 }
 
             } else {
-                console.log(new Error(req.statusText));
+                //console.log(new Error(req.statusText));
                 callback(null);
             }
         };
         req.onerror = function() {
-            console.log(Error("Network Error"));
+            //console.log(Error("Network Error"));
             callback(null);
         };
         req.send();
