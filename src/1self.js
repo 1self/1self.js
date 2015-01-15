@@ -131,6 +131,23 @@
     };
 
     var lib1self = function(config) {
+        
+        if (typeof config.appName === 'undefined') {
+            throw (new Error("appName not configured"));
+        }
+
+        if (typeof config.appVersion === 'undefined') {
+            throw (new Error("appVersion not configured"));
+        }
+
+        if (typeof config.appId === 'undefined') {
+            throw (new Error("appId not configured"));
+        }
+
+        if (typeof config.appSecret === 'undefined') {
+            throw (new Error("appSecret not configured"));
+        }
+
         this.OBJECT_TAGS = [];
         this.ACTION_TAGS = [];
 
@@ -226,16 +243,6 @@
             event.dateTime = (new Date()).toISOString();
         }
 
-        if (typeof config.appName === 'undefined') {
-            callback(new Error("appName not configured"));
-            return 
-        }
-
-        if (typeof config.appVersion === 'undefined') {
-            callback(new Error("appVersion not configured"));
-            return 
-        }
-
         event.source = config.appName;
         event.version = config.appVersion;
 
@@ -258,26 +265,38 @@
     };
 
     lib1self.prototype.sendEvent = function(event, callback) {
-
-        if(typeof event !== 'object') {
+        if(typeof event !== 'object' || typeof event.length === 'number') {
             console.log(new Error("Event type error"));
             return this;
         }
 
-        if(typeof event.length !== 'undefined') {
-            var self = this;
-            event.forEach(function(e){
-                self.sendEvent(e, callback);
-            })
-        }
-
         constructEvent(event, this.config);
-
         queueEvent(event);
-        sendEventQueue(callback);
-
+        
+        sendEventQueue();
+        callback();
         return this;
     };
+
+    lib1self.prototype.sendEvents = function(events, callback) {
+        if(typeof events !== 'object' || typeof events.length === 'undefined') {
+            console.log(new Error("Event type error"));
+            return this;
+        }
+
+        events.forEach(function(event){
+            constructEvent(event, this.config);
+            queueEvent(event);
+        });
+
+        sendEventQueue();
+        callback();
+        return this;
+    };
+
+    lib1self.prototype.pendingEvents = function(){
+        return queue.length;
+    }()
 
     lib1self.prototype.objectTags = function(tags) {
         this.OBJECT_TAGS = tags;
