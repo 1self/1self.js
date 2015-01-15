@@ -221,32 +221,30 @@
         return this;
     };
 
-
-    lib1self.prototype.sendEvent = function(event, callback) {
-
+    var constructEvent = function(event, config) {
         if (!event.dateTime) {
             event.dateTime = (new Date()).toISOString();
         }
 
-        if(typeof this.config.appName === 'undefined') {
+        if (typeof config.appName === 'undefined') {
             callback(new Error("appName not configured"));
-            return this;
+            return 
         }
 
-        if(typeof this.config.appVersion === 'undefined') {
+        if (typeof config.appVersion === 'undefined') {
             callback(new Error("appVersion not configured"));
-            return this;
+            return 
         }
 
-        event.source = this.config.appName;
-        event.version = this.config.appVersion;
+        event.source = config.appName;
+        event.version = config.appVersion;
 
-        if (!event.actionTags && this.ACTION_TAGS.length > 0) {
-            event.actionTags = this.ACTION_TAGS;
+        if (!event.actionTags && ACTION_TAGS.length > 0) {
+            event.actionTags = ACTION_TAGS;
         }
 
-        if (!event.objectTags && this.OBJECT_TAGS.length > 0) {
-            event.objectTags = this.OBJECT_TAGS;
+        if (!event.objectTags && OBJECT_TAGS.length > 0) {
+            event.objectTags = OBJECT_TAGS;
         }
 
         if (typeof window.latitude !== 'undefined') {
@@ -256,11 +254,24 @@
             };
         }
 
+        return event;
+    };
 
-        var headers = {
-            "Authorization": this.config.writeToken,
-            "Content-Type": "application/json"
-        };
+    lib1self.prototype.sendEvent = function(event, callback) {
+
+        if(typeof event !== 'object') {
+            console.log(new Error("Event type error"));
+            return this;
+        }
+
+        if(typeof event.length !== 'undefined') {
+            var self = this;
+            event.forEach(function(e){
+                self.sendEvent(e, callback);
+            })
+        }
+
+        constructEvent(event, this.config);
 
         queueEvent(event);
         sendEventQueue(callback);
