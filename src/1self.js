@@ -295,8 +295,8 @@
     };
 
     lib1self.prototype.pendingEvents = function(){
-        return queue.length;
-    }()
+        return loadJSON('1self').events.length || 0;
+    };
 
     lib1self.prototype.objectTags = function(tags) {
         this.OBJECT_TAGS = tags;
