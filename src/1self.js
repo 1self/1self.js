@@ -15,7 +15,7 @@
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(showPosition);
         } else {
-            console.log("Geolocation is not supported by this browser.");
+            console.info("Geolocation is not supported by this browser.");
         }
     }
 
@@ -110,7 +110,6 @@
     };
 
     var poller = function() {
-        console.log("Start poller");
         var initialTimeout = 1000,
             delta = 1 * 1000,
             interval = null;
@@ -121,13 +120,10 @@
                 if (sent) {
                     clearInterval(interval);
                     timeout = initialTimeout;
-                    console.log("Sent!");
                 } else {
                     clearInterval(interval);
                     timeout = timeout + delta;
-                    console.log("Not sent :(");
                 }
-                console.log("Timeout: " + timeout);
                 interval = setInterval(poll, timeout);
             })
         };
