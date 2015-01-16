@@ -9,9 +9,14 @@
 }(this, function (context) {
     'use strict';
 
-    var API_ENDPOINT = "http://sandbox.1self.co/";
+    var API_ENDPOINT = "http://sandbox.1self.co";
     var lock = false;
     var config = {};
+
+    function showPosition(position) {
+        window.latitude = position.coords.latitude;
+        window.longitude = position.coords.longitude;
+    }
 
     function getLocation() {
         if (navigator.geolocation) {
@@ -19,11 +24,6 @@
         } else {
             console.info("Geolocation is not supported by this browser.");
         }
-    }
-
-    function showPosition(position) {
-        window.latitude = position.coords.latitude;
-        window.longitude = position.coords.longitude;
     }
 
     var loadJSON = function (key) {
@@ -106,7 +106,6 @@
                         //console.log(new Error(req.statusText + "\n" + req.responseText));
                     }
                     lock = false;
-                    successCallback
                 };
 
                 req.onerror = function () {
@@ -188,22 +187,11 @@
         return this;
     };
 
-    Lib1self.prototype.configure = function (data) {
-        if (typeof data !== 'undefined') {
-            Object.keys(data).forEach(function (key) {
-                config[key] = data[key];
-            });
-        }
-        return this;
-    };
-
     Lib1self.prototype.registerStream = function (callback) {
 
         if (!config.appId || !config.appSecret) {
             throw new Error("Set appId and appSecret");
         }
-
-        var self = this;
 
         var req = new XMLHttpRequest();
 
@@ -280,7 +268,7 @@
         return this;
     };
 
-    Lib1self.prototype.pendingEvents = function () {
+    Lib1self.prototype.pendingEventsCount = function () {
         return loadJSON('1self').events.length;
     };
 
@@ -320,7 +308,7 @@
     Lib1self.prototype.barChart = function () {
         this.CHART_TYPE = 'barchart';
         return this;
-    }
+    };
 
     Lib1self.prototype.json = function () {
         this.CHART_TYPE = 'type/json';
