@@ -4,7 +4,7 @@
     } else if (typeof exports === "object") {
         module.exports = factory();
     } else {
-        root.lib1self = factory();
+        root.Lib1self = factory();
     }
 }(this, function(context) {
     'use strict';
@@ -12,13 +12,6 @@
     var API_ENDPOINT = "https://api-staging.1self.co";
     var lock = false;
     var config = {};
-    var queue = function() {
-        var stored = loadJSON('1self');
-        if (typeof stored.events === 'undefined') {
-            stored.events = [];
-        }
-        return stored;
-    }();
 
     function getLocation() {
         if (navigator.geolocation) {
@@ -40,6 +33,14 @@
             return {};
         }
     };
+    
+    var queue = function() {
+        var stored = loadJSON('1self');
+        if (typeof stored.events === 'undefined') {
+            stored.events = [];
+        }
+        return stored;
+    }();
 
     var saveJSON = function(obj, key) {
         window.localStorage[key] = JSON.stringify(obj);
@@ -196,7 +197,7 @@
         var req = new XMLHttpRequest();
 
         req.open("POST", API_ENDPOINT + "/v1/streams", true);
-        req.setRequestHeader("Authorization", self.config.appId + ":" + self.config.appSecret);
+        req.setRequestHeader("Authorization", config.appId + ":" + config.appSecret);
         req.onload = function() {
             if (req.readyState == 4 && req.status == 200) {
                 var response = JSON.parse(req.response);
@@ -266,9 +267,10 @@
         return loadJSON('1self').events.length || 0;
     };
 
-    Lib1self.prototype.visualization = function(streamid, readToken) {
+    Lib1self.prototype.visualize = function(streamid, readToken) {
         config.streamid = streamid;
         config.readToken = readToken;
+        return this;
     }
 
     Lib1self.prototype.objectTags = function(tags) {
