@@ -130,7 +130,7 @@
         interval = setInterval(poll, initialTimeout);
     };
 
-    var lib1self = function(config) {
+    var Lib1self = function(config) {
         
         if (typeof config.appName === 'undefined') {
             throw (new Error("appName not configured"));
@@ -171,17 +171,17 @@
         return this;
     };
 
-    lib1self.prototype.loadConfig = function() {
+    Lib1self.prototype.loadConfig = function() {
         this.config = loadConfig();
         return this.config;
     };
 
-    lib1self.prototype.saveConfig = function() {
+    Lib1self.prototype.saveConfig = function() {
         window.localStorage.config = JSON.stringify(this.config);
         return this;
     }
 
-    lib1self.prototype.configure = function(data) {
+    Lib1self.prototype.configure = function(data) {
         var self = this;
         if (typeof data !== 'undefined') {
             Object.keys(data).forEach(function(key) {
@@ -192,7 +192,7 @@
         return this;
     };
 
-    lib1self.prototype.registerStream = function(callback) {
+    Lib1self.prototype.registerStream = function(callback) {
         if (typeof this.config.streamid !== 'undefined') {
             callback(this.config);
             return this;
@@ -264,7 +264,7 @@
         return event;
     };
 
-    lib1self.prototype.sendEvent = function(event, callback) {
+    Lib1self.prototype.sendEvent = function(event, callback) {
         if(typeof event !== 'object' || typeof event.length === 'number') {
             console.log(new Error("Event type error"));
             return this;
@@ -278,7 +278,7 @@
         return this;
     };
 
-    lib1self.prototype.sendEvents = function(events, callback) {
+    Lib1self.prototype.sendEvents = function(events, callback) {
         if(typeof events !== 'object' || typeof events.length === 'undefined') {
             console.log(new Error("Event type error"));
             return this;
@@ -294,42 +294,42 @@
         return this;
     };
 
-    lib1self.prototype.pendingEvents = function(){
+    Lib1self.prototype.pendingEvents = function(){
         return loadJSON('1self').events.length || 0;
     };
 
-    lib1self.prototype.objectTags = function(tags) {
+    Lib1self.prototype.objectTags = function(tags) {
         this.OBJECT_TAGS = tags;
         return this;
     };
 
-    lib1self.prototype.actionTags = function(tags) {
+    Lib1self.prototype.actionTags = function(tags) {
         this.ACTION_TAGS = tags;
         return this;
     };
 
-    lib1self.prototype.sum = function(property) {
+    Lib1self.prototype.sum = function(property) {
         this.FUNCTION_TYPE = 'sum(' + property + ')';
         this.SELECTED_PROP = property;
         return this;
     };
 
-    lib1self.prototype.count = function() {
+    Lib1self.prototype.count = function() {
         this.FUNCTION_TYPE = 'count';
         return this;
     };
 
-    lib1self.prototype.barChart = function() {
+    Lib1self.prototype.barChart = function() {
         this.CHART_TYPE = 'barchart';
         return this;
     }
 
-    lib1self.prototype.json = function() {
+    Lib1self.prototype.json = function() {
         this.CHART_TYPE = 'type/json';
         return this;
     };
 
-    lib1self.prototype.url = function() {
+    Lib1self.prototype.url = function() {
         //Check
         if (this.OBJECT_TAGS.length == 0 || this.ACTION_TAGS.length == 0 || !this.config.streamid || !this.FUNCTION_TYPE || !this.CHART_TYPE) {
             throw (new Error("Can't construct URL"));
@@ -350,5 +350,5 @@
         return url;
     };
 
-    return lib1self;
+    return Lib1self;
 }));
