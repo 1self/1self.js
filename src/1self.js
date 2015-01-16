@@ -172,8 +172,6 @@
         this.OBJECT_TAGS = [];
         this.ACTION_TAGS = [];
 
-        this.onsend = null;
-
         window.addEventListener('load', getLocation, false);
         poller();
         return this;
@@ -218,9 +216,10 @@
         return this;
     };
 
-    Lib1self.prototype.sendEvent = function(event, writeToken, callback) {
-        if(!writeToken) {
-            console.log(new Error("writeToken needs to be specified"));
+
+    Lib1self.prototype.sendEvent = function(event, streamid, writeToken, callback) {
+        if(!writeToken || !streamid) {
+            console.log(new Error("streamid, writeToken needs to be specified"));
             callback(false);
             return this;
         }
@@ -231,18 +230,19 @@
             return this;
         }
 
+        config.streamid = streamid;
         config.writeToken = writeToken;
         constructEvent(event);
         queueEvent(event);
         
-        sendEventQueue(this.onsend);
+        sendEventQueue();
         callback(true);
         return this;
     };
 
-    Lib1self.prototype.sendEvents = function(events, writeToken, callback) {
+    Lib1self.prototype.sendEvents = function(events, streamid, writeToken, callback) {
         if(!writeToken) {
-            console.log(new Error("writeToken needs to be specified"));
+            console.log(new Error("streamid, writeToken needs to be specified"));
             callback(false);
             return this;
         }
@@ -258,8 +258,9 @@
             queueEvent(event);
         });
 
+        config.streamid = streamid;
         config.writeToken = writeToken;
-        sendEventQueue(this.onsend);
+        sendEventQueue();
         callback(true);
         return this;
     };
