@@ -12,6 +12,13 @@
     var API_ENDPOINT = "https://api-staging.1self.co";
     var lock = false;
     var config = {};
+    var queue = function() {
+        var stored = loadJSON('1self');
+        if (typeof stored.events === 'undefined') {
+            stored.events = [];
+        }
+        return stored;
+    }();
 
     function getLocation() {
         if (navigator.geolocation) {
@@ -34,17 +41,34 @@
         }
     };
 
-    
-    var queue = function() {
-        var stored = loadJSON('1self');
-        if (typeof stored.events === 'undefined') {
-            stored.events = [];
-        }
-        return stored;
-    }();
-
     var saveJSON = function(obj, key) {
         window.localStorage[key] = JSON.stringify(obj);
+    };
+    
+    var constructEvent = function(event) {
+
+        if (!event.dateTime) {
+            event.dateTime = (new Date()).toISOString();
+        }
+
+        event.source = config.appName;
+        event.version = config.appVersion;
+
+        if (!event.actionTags && ACTION_TAGS.length > 0) {
+            event.actionTags = ACTION_TAGS;
+        }
+
+        if (!event.objectTags && OBJECT_TAGS.length > 0) {
+            event.objectTags = OBJECT_TAGS;
+        }
+
+        if (typeof window.latitude !== 'undefined') {
+            event.location = {
+                "lat": window.latitude,
+                "long": window.longitude
+            };
+        }
+        return event;
     };
 
     var queueEvent = function(event) {
@@ -125,32 +149,6 @@
         interval = setInterval(poll, initialTimeout);
     };
 
-    var constructEvent = function(event) {
-        if (!event.dateTime) {
-            event.dateTime = (new Date()).toISOString();
-        }
-
-        event.source = config.appName;
-        event.version = config.appVersion;
-
-        if (!event.actionTags && ACTION_TAGS.length > 0) {
-            event.actionTags = ACTION_TAGS;
-        }
-
-        if (!event.objectTags && OBJECT_TAGS.length > 0) {
-            event.objectTags = OBJECT_TAGS;
-        }
-
-        if (typeof window.latitude !== 'undefined') {
-            event.location = {
-                "lat": window.latitude,
-                "long": window.longitude
-            };
-        }
-
-        return event;
-    };
-    
     var Lib1self = function(_config) {
         
         if (typeof _config.appName === 'undefined') {
