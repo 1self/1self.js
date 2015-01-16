@@ -34,7 +34,6 @@
         }
     };
 
-    var saveJSON = function(obj, key) {
     
     var queue = function() {
         var stored = loadJSON('1self');
@@ -44,6 +43,7 @@
         return stored;
     }();
 
+    var saveJSON = function(obj, key) {
         window.localStorage[key] = JSON.stringify(obj);
     };
 
