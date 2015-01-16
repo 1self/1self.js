@@ -263,6 +263,11 @@
         return this;
     };
 
+    Lib1self.prototype.synchronize = function() {
+        sendEventQueue();
+        return this;
+    }
+
     Lib1self.prototype.pendingEvents = function(){
         return loadJSON('1self').events.length || 0;
     };
