@@ -9,7 +9,7 @@
 }(this, function (context) {
     'use strict';
 
-    var API_ENDPOINT = "http://localhost:5000";
+    var API_ENDPOINT = "http://sandbox.1self.co/";
     var lock = false;
     var config = {};
 
