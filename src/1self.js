@@ -171,6 +171,7 @@
         config = _config;
         this.OBJECT_TAGS = [];
         this.ACTION_TAGS = [];
+        this.onsend = null;
 
         window.addEventListener('load', getLocation, false);
         poller();
@@ -235,7 +236,7 @@
         constructEvent(event);
         queueEvent(event);
         
-        sendEventQueue();
+        sendEventQueue(onsend);
         callback(true);
         return this;
     };
@@ -260,7 +261,7 @@
 
         config.streamid = streamid;
         config.writeToken = writeToken;
-        sendEventQueue();
+        sendEventQueue(onsend);
         callback(true);
         return this;
     };
