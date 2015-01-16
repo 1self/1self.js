@@ -172,6 +172,8 @@
         this.OBJECT_TAGS = [];
         this.ACTION_TAGS = [];
 
+        this.onsend = null;
+
         window.addEventListener('load', getLocation, false);
         poller();
         return this;
@@ -216,7 +218,6 @@
         return this;
     };
 
-
     Lib1self.prototype.sendEvent = function(event, writeToken, callback) {
         if(!writeToken) {
             console.log(new Error("writeToken needs to be specified"));
@@ -234,7 +235,7 @@
         constructEvent(event);
         queueEvent(event);
         
-        sendEventQueue();
+        sendEventQueue(this.onsend);
         callback(true);
         return this;
     };
@@ -258,7 +259,7 @@
         });
 
         config.writeToken = writeToken;
-        sendEventQueue();
+        sendEventQueue(this.onsend);
         callback(true);
         return this;
     };
