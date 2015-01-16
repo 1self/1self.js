@@ -126,6 +126,31 @@
     };
 
     var constructEvent = function(event) {
+        if (!event.dateTime) {
+            event.dateTime = (new Date()).toISOString();
+        }
+
+        event.source = config.appName;
+        event.version = config.appVersion;
+
+        if (!event.actionTags && ACTION_TAGS.length > 0) {
+            event.actionTags = ACTION_TAGS;
+        }
+
+        if (!event.objectTags && OBJECT_TAGS.length > 0) {
+            event.objectTags = OBJECT_TAGS;
+        }
+
+        if (typeof window.latitude !== 'undefined') {
+            event.location = {
+                "lat": window.latitude,
+                "long": window.longitude
+            };
+        }
+
+        return event;
+    };
+    
     var Lib1self = function(_config) {
         
         if (typeof _config.appName === 'undefined') {
@@ -192,30 +217,6 @@
         return this;
     };
 
-        if (!event.dateTime) {
-            event.dateTime = (new Date()).toISOString();
-        }
-
-        event.source = config.appName;
-        event.version = config.appVersion;
-
-        if (!event.actionTags && ACTION_TAGS.length > 0) {
-            event.actionTags = ACTION_TAGS;
-        }
-
-        if (!event.objectTags && OBJECT_TAGS.length > 0) {
-            event.objectTags = OBJECT_TAGS;
-        }
-
-        if (typeof window.latitude !== 'undefined') {
-            event.location = {
-                "lat": window.latitude,
-                "long": window.longitude
-            };
-        }
-
-        return event;
-    };
 
     Lib1self.prototype.sendEvent = function(event, writeToken, callback) {
         if(!writeToken) {
