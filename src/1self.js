@@ -240,7 +240,7 @@
     };
 
     Lib1self.prototype.backgroundColor = function (backgroundColor) {
-        this.OBJECT_TAGS = backgroundColor;
+        this.BACKGROUND_COLOR = backgroundColor;
         return this;
     };
 
