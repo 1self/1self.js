@@ -10,6 +10,10 @@
     'use strict';
 
     var API_ENDPOINT = "http://sandbox.1self.co";
+    var endpoints = {
+        'sandbox':  "http://sandbox.1self.co",
+        'production': "https://api.1self.co"
+    };
     var lock = false;
     var config = {};
 
@@ -155,7 +159,7 @@
         interval = setInterval(poll, initialTimeout);
     };
 
-    var Lib1self = function (_config) {
+    var Lib1self = function (_config, endpoint) {
 
         if (typeof _config.appName === 'undefined') {
             throw (new Error("appName not configured"));
@@ -171,6 +175,12 @@
 
         if (typeof _config.appSecret === 'undefined') {
             throw (new Error("appSecret not configured"));
+        }
+
+        if(endpoint) {
+            if(endpoints.endpoint) {
+                API_ENDPOINT = endpoints.endpoint;
+            }
         }
 
         config = _config;
