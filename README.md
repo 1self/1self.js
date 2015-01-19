@@ -207,12 +207,16 @@ Method: sum(property)
 Params: property: string
 Return: self
 ```
+OR
+
 Set the visualization URL for a mean(average) operation:
 ```javascript
 Method: mean(property)
 Params: property: string
 Return: self
 ```
+OR
+
 Set the visualization URL for a count operation:
 ```javascript
 Method: count()
@@ -229,6 +233,8 @@ Method: barChart()
 Params: none
 Return: self
 ```
+
+OR
 
 To display JSON data of the events:
 ```javascript
