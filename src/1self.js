@@ -176,6 +176,7 @@
         config = _config;
         this.OBJECT_TAGS = [];
         this.ACTION_TAGS = [];
+        this.BG_COLOR = "";
         this.onsendsuccess = null;
         this.onsenderror = null;
         if (!window.localStorage['1self']) {
@@ -238,6 +239,13 @@
         return this;
     };
 
+    Lib1self.prototype.setBgColor = function (bgColor) {
+        if ((bgColor !== undefined) && bgColor !== ""){
+            this.OBJECT_TAGS = bgColor;
+        };
+        return this;
+    };
+
     Lib1self.prototype.sendEvents = function (events, streamid, writeToken, callback) {
         if (!writeToken) {
             console.log(new Error("streamid, writeToken needs to be specified"));
@@ -276,7 +284,7 @@
         config.streamid = streamid;
         config.readToken = readToken;
         return this;
-    }
+    };
 
     Lib1self.prototype.objectTags = function (tags) {
         this.OBJECT_TAGS = tags;
@@ -327,12 +335,16 @@
                 str += tag + ',';
             });
             return str.slice(0, -1);
-        }
+        };
 
         var object_tags_str = stringifyTags(this.OBJECT_TAGS);
         var action_tags_str = stringifyTags(this.ACTION_TAGS);
 
         var url = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/" + object_tags_str + "/" + action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE;
+
+        if ((this.BG_COLOR !== undefined) || (this.BG_COLOR !== "")) {
+            url = "?bgColor=" + this.BG_COLOR;
+        };
         return url;
     };
 
