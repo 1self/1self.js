@@ -182,6 +182,15 @@
             saveJSON('1self', {'events': []});
         }
 
+        var storedConfig = loadJSON('config');
+        if(storedConfig.streamid) {
+            config.streamid = storedConfig.streamid;
+        }
+        if(storedConfig.writeToken) {
+            config.writeToken = storedConfig.writeToken;
+        }
+
+
         window.addEventListener('load', getLocation, false);
         poller(this);
         return this;
@@ -230,6 +239,7 @@
 
         config.streamid = streamid;
         config.writeToken = writeToken;
+        saveJSON('config', config);
         constructEvent(event);
         queueEvent(event);
 
@@ -258,6 +268,7 @@
 
         config.streamid = streamid;
         config.writeToken = writeToken;
+        saveJSON('config', config);
         sendEventQueue(this.onsendsuccess, this.onsenderror);
         callback(true);
         return this;
