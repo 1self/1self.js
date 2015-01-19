@@ -176,7 +176,7 @@
         config = _config;
         this.OBJECT_TAGS = [];
         this.ACTION_TAGS = [];
-        this.BG_COLOR = "";
+        this.BACKGROUND_COLOR = "";
         this.onsendsuccess = null;
         this.onsenderror = null;
         if (!window.localStorage['1self']) {
@@ -239,10 +239,8 @@
         return this;
     };
 
-    Lib1self.prototype.setBgColor = function (bgColor) {
-        if ((bgColor !== undefined) && bgColor !== ""){
-            this.OBJECT_TAGS = bgColor;
-        };
+    Lib1self.prototype.backgroundColor = function (backgroundColor) {
+        this.OBJECT_TAGS = backgroundColor;
         return this;
     };
 
@@ -342,9 +340,10 @@
 
         var url = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/" + object_tags_str + "/" + action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE;
 
-        if ((this.BG_COLOR !== undefined) || (this.BG_COLOR !== "")) {
-            url = "?bgColor=" + this.BG_COLOR;
+        if ((this.BACKGROUND_COLOR !== undefined) || (this.BACKGROUND_COLOR !== "")) {
+            url = "?bgColor=" + this.BACKGROUND_COLOR;
         };
+
         return url;
     };
 
