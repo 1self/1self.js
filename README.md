@@ -237,6 +237,16 @@ Params: none
 Return: self
 ```
 
+
+####Setting the background color for the visualisation
+Use the ```backgroundColor``` method to set the backgroundColor of visualization. 
+
+```javascript
+Method: backgroundColor(color)
+Params: color: String (HEX code for the color without initial #)
+Return: self
+```
+
 ####Generating the URL
 Use the ```url``` method to get the URL for the visualization 
 
@@ -257,5 +267,6 @@ var vizUrl = oneself
          .actionTags(helloWorldActionTags)
          .sum("linesOfCode")
          .barChart()
+         .backgroundColor("99CC99")
          .url();
 ``` 
