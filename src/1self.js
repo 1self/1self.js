@@ -121,9 +121,9 @@
                     lock = true;
                     req.send(JSON.stringify(queue.events.slice(0, queuelength)));
                 } else {
-                    if (failureCallback) {
-                        failureCallback();
-                    }
+                    // if (failureCallback) {
+                    //     failureCallback();
+                    // }
                 }
             }
         }
