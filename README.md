@@ -236,3 +236,26 @@ Method: json()
 Params: none
 Return: self
 ```
+
+####Generating the URL
+Use the ```url``` method to get the URL for the visualization 
+
+```javascript
+Method: url()
+Params: none
+Return: URL: String
+```
+
+###Using chaining to generate a URL
+The above methods may be chained together for a convenient way to build a URL
+
+Example:
+```javascript
+var vizUrl = oneself
+         .visualize(streamid, readToken)
+         .objectTags(helloWorldObjectTags)
+         .actionTags(helloWorldActionTags)
+         .sum("linesOfCode")
+         .barChart()
+         .url();
+``` 
