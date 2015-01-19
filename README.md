@@ -10,7 +10,7 @@ We need to include the 1self.js library on the page. The library occupies a glob
 ```
 ###Creating a library instance
 
-First, we need to provide the initial configuration the 1self needs. **All fields are compulsory**. 
+First, we need to provide the initial configuration the 1self needs, and specify an ```endpoint```. **All fields are compulsory**. 
 
 Example:
 ```javascript
@@ -21,9 +21,16 @@ var config = {
     "appSecret": "[As provided]"
 }
 ```
+```
+var endpoint = 'sandbox'
+```
+OR
+```
+var endpoint = 'production'
+```
 
 ```javascript
-var oneself = new Lib1self(config);
+var oneself = new Lib1self(config, endpoint);
 ```
 
 ### Registering a stream
