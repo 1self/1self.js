@@ -29,9 +29,9 @@ var oneself = new Lib1self(config);
 ### Registering a stream
 Streams are a logical collection of events on the 1self API. They provide a place to read and write events for applications and integrations. They control event access and coordinate integration synchronization.
 
-```
-Method: registerStream
-Params: callback(response)
+```javascript
+Method: registerStream(callback)
+Params: callback(response): function
 Return: self
 ```
 ```javascript
@@ -66,9 +66,9 @@ var event = {
 
 ####Setting Object tags
 Object tags are specified using a string array of tags. They may set individually for each event, or specified using the ```objectTags``` method.
-```
-Method: objectTags
-Params: array: String
+```javascript
+Method: objectTags(tags)
+Params: tags: array of strings
 Return: self
 ```
 Example:
@@ -88,9 +88,9 @@ var event = {
 
 ####Setting Action tags
 Action tags are specified using a string array of tags. They may set individually for each event, or specified using the ```actionTags``` method.
-```
-Method: actionTags
-Params: array: String
+```javascript
+Method: actionTags(tags)
+Params: tags: array of strings
 Return: self
 ```
 Example:
@@ -130,14 +130,20 @@ The ```sendEvent``` or ```sendEvents``` methods may be used to send an event obj
 If a connection can't be established, the event is queued to be sent when connection is restored. Event handlers (if specified) are triggered on success or failure.
 
 ```
-Method: sendEvent
+Method: sendEvent(event, streamid, writeToken, callback)
 Params: event: JSON object
+		streamid: String
+		writeToken: String
+		callback: function
 Return: self
 ```
 
 ```
-Method: sendEvents
-Params: array: event JSON object
+Method: sendEvents(events, streamid, writeToken, callback)
+Params: events: array of event JSON object
+		streamid: String
+		writeToken: String
+		callback: function
 Return: self
 ```
 
@@ -160,4 +166,73 @@ oneself.onsenderror = function() {
 }
 
 oneself.sendEvent(event);
+```
+
+####Pending Events
+1self.js will attempt to resend all failed attempts when a connection is restored. The ```pendingEventsCount``` method may be used to get a count of events queued up for the next send attempt.
+
+```javascript
+Method: pendingEventsCount()
+Params: none
+Return: Count of unsent events: Integer
+```
+
+Example:
+```javascript
+oneself.onsenderror = function() {
+	var unsent = oneself.pendingEventsCount();
+	console.log("Unsent count: " + unsent);
+}
+```
+
+###Visualizing the data
+####Setting a streamid and read token
+The ```visualize``` method needs to be called in order to set parameters necessary for viewing a visualization.
+
+```javascript
+Method: visualize(streamid, readToken)
+Params: streamid: string
+		readToken: string
+Return: Count of unsent events: Integer
+```
+####Setting object and action tags
+Refer to the Events section.
+
+####Selecting and operation
+Use one of the following methods: ```sum```, ```mean```and ```count```
+
+Set the visualization URL for a sum operation:
+```javascript
+Method: sum(property)
+Params: property: string
+Return: self
+```
+Set the visualization URL for a mean(average) operation:
+```javascript
+Method: mean(property)
+Params: property: string
+Return: self
+```
+Set the visualization URL for a count operation:
+```javascript
+Method: count()
+Params: none
+Return: self
+```
+
+####Selecting the URL type
+Use one of the following: ```barChart``` or ```json```
+
+To display a bar chart of the events:
+```javascript
+Method: barChart()
+Params: none
+Return: self
+```
+
+To display JSON data of the events:
+```javascript
+Method: json()
+Params: none
+Return: self
 ```
