@@ -12,10 +12,11 @@ We need to include the 1self.js library on the page. The library occupies a glob
 
 First, we need to provide the initial configuration the 1self needs. **All fields are compulsory**. 
 
+Example:
 ```javascript
 var config = {
-    "appName": 'Ex. Hello, 1self',
-    "appVersion": 'Ex. 1.0.0',
+    "appName": 'Hello, 1self',
+    "appVersion": '1.0.0',
     "appId": "[As provided]",
     "appSecret": "[As provided]"
 }
@@ -147,3 +148,16 @@ Called when events are successfully sent to the platform.
 
 Property: ```onsenderror```
 Called when event sending to the platform failed.
+
+Example:
+```javascript
+oneself.onsendsuccess = function() {
+	console.log("Events sent!");
+}
+
+oneself.onsenderror = function() {
+	console.log("Events not sent :-( ");
+}
+
+oneself.sendEvent(event);
+```
