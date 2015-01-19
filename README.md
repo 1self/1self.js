@@ -1,8 +1,3 @@
----
-title: Getting started
-anchor: getting-started
----
-
 1self.js Documentation
 ----------------------
 
