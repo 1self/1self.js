@@ -11,7 +11,7 @@
 
     var API_ENDPOINT = "http://sandbox.1self.co";
     var endpoints = {
-        'sandbox':  "http://sandbox.1self.co",
+        'sandbox': "http://sandbox.1self.co",
         'production': "https://api.1self.co"
     };
     var lock = false;
@@ -177,9 +177,9 @@
             throw (new Error("appSecret not configured"));
         }
 
-        if(endpoint) {
-            if(endpoints.endpoint) {
-                API_ENDPOINT = endpoints.endpoint;
+        if (endpoint) {
+            if (endpoints[endpoint]) {
+                API_ENDPOINT = endpoints[endpoint];
             }
         }
 
@@ -194,10 +194,10 @@
         }
 
         var storedConfig = loadJSON('config');
-        if(storedConfig.streamid) {
+        if (storedConfig.streamid) {
             config.streamid = storedConfig.streamid;
         }
-        if(storedConfig.writeToken) {
+        if (storedConfig.writeToken) {
             config.writeToken = storedConfig.writeToken;
         }
 
