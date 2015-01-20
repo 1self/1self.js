@@ -362,8 +362,8 @@
         var url = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/" + object_tags_str + "/" + action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE;
 
         if ((this.BACKGROUND_COLOR !== undefined) || (this.BACKGROUND_COLOR !== "")) {
-            url = "?bgColor=" + this.BACKGROUND_COLOR;
-        };
+            url = url + "?bgColor=" + this.BACKGROUND_COLOR;
+        }
 
         return url;
     };
