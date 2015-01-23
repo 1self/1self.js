@@ -359,10 +359,12 @@
         var object_tags_str = stringifyTags(this.OBJECT_TAGS);
         var action_tags_str = stringifyTags(this.ACTION_TAGS);
 
-        var url = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/" + object_tags_str + "/" + action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE;
+        var url = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/" + object_tags_str + "/" +
+            action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE +
+            "?readToken="+config.readToken;
 
         if ((this.BACKGROUND_COLOR !== undefined) || (this.BACKGROUND_COLOR !== "")) {
-            url = url + "?bgColor=" + this.BACKGROUND_COLOR;
+            url = url + "&bgColor=" + this.BACKGROUND_COLOR;
         }
 
         return url;
