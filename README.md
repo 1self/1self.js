@@ -38,21 +38,23 @@ Streams are a logical collection of events on the 1self API. They provide a plac
 
 ```javascript
 Method: registerStream(callback)
-Params: callback(response): function
+Params: callback(error, response): function
 Return: self
 ```
 ```javascript
-oneself.registerStream(function(response){
-	/** 
-	response = {
-		streamid: '...',
-		readToken: '...',
-		writeToken: '...'
+oneself.registerStream(function(error, response){
+	/**
+	if(error == null){	
+		response = {
+				streamid: '...',
+				readToken: '...',
+				writeToken: '...'
+			}
 	}
 	OR
-	response = null
+	error = Error
 	*/
-})
+});
 ```
 
 The response object needs to be saved as they are needed for API calls. A `null` is returned in case of an error.
@@ -141,8 +143,7 @@ Method: sendEvent(event, streamid, writeToken, callback)
 Params: event: JSON object
 		streamid: String
 		writeToken: String
-		callback: function
-Return: self
+Return: self or throws Error
 ```
 
 ```
@@ -150,8 +151,7 @@ Method: sendEvents(events, streamid, writeToken, callback)
 Params: events: array of event JSON object
 		streamid: String
 		writeToken: String
-		callback: function
-Return: self
+Return: self or throws Error
 ```
 
 **Event Handlers**
