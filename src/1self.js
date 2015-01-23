@@ -11,7 +11,7 @@
 
     var API_ENDPOINT = "http://sandbox.1self.co";
     var endpoints = {
-        'sandbox':  "http://sandbox.1self.co",
+        'sandbox': "http://sandbox.1self.co",
         'production': "https://api.1self.co"
     };
     var lock = false;
@@ -177,9 +177,9 @@
             throw (new Error("appSecret not configured"));
         }
 
-        if(endpoint) {
-            if(endpoints.endpoint) {
-                API_ENDPOINT = endpoints.endpoint;
+        if (endpoint) {
+            if (endpoints[endpoint]) {
+                API_ENDPOINT = endpoints[endpoint];
             }
         }
 
@@ -194,10 +194,10 @@
         }
 
         var storedConfig = loadJSON('config');
-        if(storedConfig.streamid) {
+        if (storedConfig.streamid) {
             config.streamid = storedConfig.streamid;
         }
-        if(storedConfig.writeToken) {
+        if (storedConfig.writeToken) {
             config.writeToken = storedConfig.writeToken;
         }
 
@@ -350,10 +350,12 @@
         var object_tags_str = stringifyTags(this.OBJECT_TAGS);
         var action_tags_str = stringifyTags(this.ACTION_TAGS);
 
-        var url = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/" + object_tags_str + "/" + action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE;
+        var url = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/" + object_tags_str + "/" +
+            action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE +
+            "?readToken="+config.readToken;
 
         if ((this.BACKGROUND_COLOR !== undefined) || (this.BACKGROUND_COLOR !== "")) {
-            url = url + "?bgColor=" + this.BACKGROUND_COLOR;
+            url = url + "&bgColor=" + this.BACKGROUND_COLOR;
         }
 
         return url;
