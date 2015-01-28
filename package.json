@@ -1,0 +1,22 @@
+{
+  "name": "lib1self",
+  "version": "0.1.0",
+  "description": "javascript library for 1self.co api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No tests to run\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/1self/1self.js.git"
+  },
+  "keywords": [
+    "1self"
+  ],
+  "author": "1self <team@1self.co> (www.1self.co)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/1self/1self.js/issues"
+  },
+  "homepage": "https://github.com/1self/1self.js"
+}
