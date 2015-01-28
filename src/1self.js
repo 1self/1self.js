@@ -4,9 +4,10 @@
     } else if (typeof exports === "object") {
         module.exports = factory();
     } else {
-        root.Lib1self = factory();
+        root.Lib1selfClient = factory();
     }
 }(this, function (context) {
+
     'use strict';
 
     var API_ENDPOINT = "http://sandbox.1self.co";
@@ -16,6 +17,21 @@
     };
     var lock = false;
     var config = {};
+
+
+    var Stream = function(sid, rt, wt) {
+        this.streamid = function() {
+            return sid;
+        };
+
+        this.readToken = function(value) {
+            return rt;
+        };
+
+        this.writeToken = function(value) {
+            return wt;
+        };
+    };
 
     function showPosition(position) {
         window.latitude = position.coords.latitude;
@@ -45,6 +61,13 @@
     var saveJSON = function (key, obj) {
         window.localStorage[key] = JSON.stringify(obj);
     };
+
+    var saveConfigStream = function(stream) {
+        config.streamid = stream.streamid();
+        config.writeToken = stream.writeToken();
+        config.readToken = stream.readToken();
+        saveJSON('config', config);
+    }
 
     var constructEvent = function (event) {
 
@@ -159,7 +182,7 @@
         interval = setInterval(poll, initialTimeout);
     };
 
-    var Lib1self = function (_config, endpoint) {
+    var Lib1selfClient = function (_config, endpoint) {
 
         if (typeof _config.appName === 'undefined') {
             throw (new Error("appName not configured"));
@@ -200,14 +223,29 @@
         if (storedConfig.writeToken) {
             config.writeToken = storedConfig.writeToken;
         }
-
+        if (storedConfig.readToken) {
+            config.readToken = storedConfig.readToken;
+        }
 
         window.addEventListener('load', getLocation, false);
         poller(this);
         return this;
     };
 
-    Lib1self.prototype.registerStream = function (callback) {
+    Lib1selfClient.prototype.on = function(event, eventHandler) {
+        if(event === 'sendsuccess') {
+            this.onsendsuccess = eventHandler;
+        } else if (event === 'senderror') {
+            this.onsenderror = eventHandler;
+        }
+    };
+
+    Lib1selfClient.prototype.registerStream = function (callback) {
+
+        var parseResponse= function(response) {
+            var stream = new Stream(response.streamid, response.readToken, response.writeToken);
+            return stream;
+        };
 
         if (!config.appId || !config.appSecret) {
             throw new Error("Set appId and appSecret");
@@ -219,8 +257,12 @@
         req.setRequestHeader("Authorization", config.appId + ":" + config.appSecret);
         req.onload = function () {
             if (req.readyState == 4 && req.status == 200) {
+                /** CLEAR EVENT QUEUE */
+                saveJSON('1self', {'events': []});
                 var response = JSON.parse(req.response);
-                callback(null, response);
+                var stream = parseResponse(response)
+                saveConfigStream(stream);
+                callback(null, stream);
 
             } else {
                 //console.log(new Error(req.statusText));
@@ -235,110 +277,112 @@
         return this;
     };
 
-    Lib1self.prototype.sendEvent = function (event, streamid, writeToken) {
-        if (!writeToken || !streamid) {
-            throw (new Error("streamid, writeToken needs to be specified"));
+    Lib1selfClient.prototype.fetchStream = function(callback) {
+        if (typeof config.streamid !== 'undefined' && typeof config.writeToken !== 'undefined' && typeof config.readToken !== 'undefined' ) {
+            var stream = new Stream(config.streamid, config.readToken, config.writeToken);
+            saveConfigStream(stream);
+            callback(null, stream);
+        } else {
+            this.registerStream(callback);
+        }
+        return this;
+    };
+
+    Lib1selfClient.prototype.sendEvent = function (event, stream) {
+        if (!stream) {
+            throw (new Error("Stream needs to be specified"));
         }
 
         if (typeof event !== 'object' || typeof event.length === 'number') {
             throw (new Error("Event type error"));
         }
 
-        config.streamid = streamid;
-        config.writeToken = writeToken;
-        saveJSON('config', config);
+        saveConfigStream(stream);
         constructEvent(event);
         queueEvent(event);
 
-        sendEventQueue(this.onsendsuccess, this.onsenderror);
+        sendEventQueue(this.onsendsuccess, this.onsenderror, config);
         return this;
     };
 
 
-    Lib1self.prototype.sendEvents = function (events, streamid, writeToken) {
-        if (!writeToken) {
-            throw (new Error("streamid, writeToken needs to be specified"));
+    Lib1selfClient.prototype.sendEvents = function (events, stream) {
+        if (!stream) {
+            throw (new Error("Stream needs to be specified"));
         }
 
         if (typeof events !== 'object' || typeof events.length === 'undefined') {
             throw (new Error("Event type error"));
         }
 
+        saveConfigStream(stream);
         events.forEach(function (event) {
             constructEvent(event, config);
             queueEvent(event);
         });
 
-        config.streamid = streamid;
-        config.writeToken = writeToken;
-        saveJSON('config', config);
         sendEventQueue(this.onsendsuccess, this.onsenderror);
         return this;
     };
 
-    Lib1self.prototype.backgroundColor = function (backgroundColor) {
+    Lib1selfClient.prototype.backgroundColor = function (backgroundColor) {
         this.BACKGROUND_COLOR = backgroundColor;
         return this;
     };
 
-    Lib1self.prototype.synchronize = function () {
+    Lib1selfClient.prototype.synchronize = function () {
         sendEventQueue(this.onsendsuccess, this.onsenderror);
         return this;
     };
 
-    Lib1self.prototype.pendingEventsCount = function () {
+    Lib1selfClient.prototype.pendingEventsCount = function () {
         return loadJSON('1self').events.length;
     };
 
-    Lib1self.prototype.visualize = function (streamid, readToken) {
-        config.streamid = streamid;
-        config.readToken = readToken;
-        return this;
-    };
-
-    Lib1self.prototype.objectTags = function (tags) {
+    Lib1selfClient.prototype.objectTags = function (tags) {
         this.OBJECT_TAGS = tags;
         return this;
     };
 
-    Lib1self.prototype.actionTags = function (tags) {
+    Lib1selfClient.prototype.actionTags = function (tags) {
         this.ACTION_TAGS = tags;
         return this;
     };
 
-    Lib1self.prototype.sum = function (property) {
+    Lib1selfClient.prototype.sum = function (property) {
         this.FUNCTION_TYPE = 'sum(' + property + ')';
         this.SELECTED_PROP = property;
         return this;
     };
 
-    Lib1self.prototype.mean = function (property) {
+    Lib1selfClient.prototype.mean = function (property) {
         this.FUNCTION_TYPE = 'mean(' + property + ')';
         this.SELECTED_PROP = property;
         return this;
     };
 
-    Lib1self.prototype.count = function () {
+    Lib1selfClient.prototype.count = function () {
         this.FUNCTION_TYPE = 'count';
         return this;
     };
 
-    Lib1self.prototype.barChart = function () {
+    Lib1selfClient.prototype.barChart = function () {
         this.CHART_TYPE = 'barchart';
         return this;
     };
 
-    Lib1self.prototype.json = function () {
+    Lib1selfClient.prototype.json = function () {
         this.CHART_TYPE = 'type/json';
         return this;
     };
 
-    Lib1self.prototype.url = function () {
+    Lib1selfClient.prototype.url = function (stream) {
         //Check
-        if (this.OBJECT_TAGS.length == 0 || this.ACTION_TAGS.length == 0 || !config.streamid || !this.FUNCTION_TYPE || !this.CHART_TYPE) {
+        if (this.OBJECT_TAGS.length == 0 || this.ACTION_TAGS.length == 0 || !stream || !this.FUNCTION_TYPE || !this.CHART_TYPE) {
             throw (new Error("Can't construct URL"));
         }
 
+        saveConfigStream(stream);
         var stringifyTags = function (tags) {
             var str = "";
             tags.forEach(function (tag) {
@@ -350,9 +394,9 @@
         var object_tags_str = stringifyTags(this.OBJECT_TAGS);
         var action_tags_str = stringifyTags(this.ACTION_TAGS);
 
-        var url = API_ENDPOINT + "/v1/streams/" + config.streamid + "/events/" + object_tags_str + "/" +
+        var url = API_ENDPOINT + "/v1/streams/" + stream.streamid() + "/events/" + object_tags_str + "/" +
             action_tags_str + "/" + this.FUNCTION_TYPE + "/daily/" + this.CHART_TYPE +
-            "?readToken="+config.readToken;
+            "?readToken="+ stream.readToken();
 
         if ((this.BACKGROUND_COLOR !== undefined) || (this.BACKGROUND_COLOR !== "")) {
             url = url + "&bgColor=" + this.BACKGROUND_COLOR;
@@ -361,5 +405,5 @@
         return url;
     };
 
-    return Lib1self;
+    return Lib1selfClient;
 }));
