@@ -3,7 +3,7 @@
 
 ###Include 1self.js
 
-We need to include the 1self.js library on the page. The library occupies a global variable of `Lib1self`.
+We need to include the 1self.js library on the page. The library occupies a global variable of `Lib1selfClient`.
 
 ```html
 <script src="1self.js"></script>
@@ -30,7 +30,7 @@ var endpoint = 'production'
 ```
 
 ```javascript
-var oneself = new Lib1self(config, endpoint);
+var oneself = new Lib1selfClient(config, endpoint);
 ```
 
 ### Registering a stream
