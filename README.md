@@ -33,31 +33,27 @@ var endpoint = 'production'
 var oneself = new Lib1selfClient(config, endpoint);
 ```
 
-### Registering a stream
+### Fetching a stream
 Streams are a logical collection of events on the 1self API. They provide a place to read and write events for applications and integrations. They control event access and coordinate integration synchronization.
 
 ```javascript
-Method: registerStream(callback)
+Method: fetchStream(callback)
 Params: callback(error, response): function
 Return: self
 ```
 ```javascript
-oneself.registerStream(function(error, response){
-	/**
-	if(error == null){	
-		response = {
-				streamid: '...',
-				readToken: '...',
-				writeToken: '...'
-			}
-	}
-	OR
-	error = Error
-	*/
+var stream;
+oneself.fetchStream(function(error, response){
+	if (!error) {
+          stream = response;
+          renderVizUrl(stream);
+        } else {
+	        //Handle error
+        }
 });
 ```
 
-The response object needs to be saved as they are needed for API calls. A `null` is returned in case of an error.
+The response stream object needs to be saved as they are needed for API calls. A `null` is returned in case of an error.
 
 ### Events
 #### Setting properties
@@ -139,40 +135,41 @@ The ```sendEvent``` or ```sendEvents``` methods may be used to send an event obj
 If a connection can't be established, the event is queued to be sent when connection is restored. Event handlers (if specified) are triggered on success or failure.
 
 ```
-Method: sendEvent(event, streamid, writeToken, callback)
+Method: sendEvent(event, stream)
 Params: event: JSON object
-		streamid: String
-		writeToken: String
+		stream: Stream object obtained from 'fetchStream'
 Return: self or throws Error
 ```
 
 ```
-Method: sendEvents(events, streamid, writeToken, callback)
+Method: sendEvents(events, stream)
 Params: events: array of event JSON object
-		streamid: String
-		writeToken: String
+		stream: Stream object obtained from 'fetchStream'
 Return: self or throws Error
 ```
 
 **Event Handlers**
 
-Property:  ```onsendsuccess```
-Called when events are successfully sent to the platform.
+Event handlers may be registered using the ```on``` method.
 
-Property: ```onsenderror```
-Called when event sending to the platform failed.
+```
+Method: on(event, eventHandler)
+Params: event: Either 'senderror' or 'sendsuccess'
+		eventHandler: function()
+Return: none
+```
 
 Example:
 ```javascript
-oneself.onsendsuccess = function() {
+oneself.on('sendsuccess', function() {
 	console.log("Events sent!");
-}
+});
 
-oneself.onsenderror = function() {
+oneself.on('senderror', function() {
 	console.log("Events not sent :-( ");
-}
+});
 
-oneself.sendEvent(event);
+oneself.sendEvent(event, stream);
 ```
 
 ####Pending Events
@@ -193,15 +190,7 @@ oneself.onsenderror = function() {
 ```
 
 ###Visualizing the data
-####Setting a streamid and read token
-The ```visualize``` method needs to be called in order to set parameters necessary for viewing a visualization.
 
-```javascript
-Method: visualize(streamid, readToken)
-Params: streamid: string
-		readToken: string
-Return: Count of unsent events: Integer
-```
 ####Setting object and action tags
 Refer to the Events section.
 
@@ -264,8 +253,8 @@ Return: self
 Use the ```url``` method to get the URL for the visualization 
 
 ```javascript
-Method: url()
-Params: none
+Method: url(stream)
+Params: stream: stream object obtained from 'fetchStream'
 Return: URL: String
 ```
 
@@ -275,11 +264,10 @@ The above methods may be chained together for a convenient way to build a URL
 Example:
 ```javascript
 var vizUrl = oneself
-         .visualize(streamid, readToken)
          .objectTags(helloWorldObjectTags)
          .actionTags(helloWorldActionTags)
          .sum("linesOfCode")
          .barChart()
          .backgroundColor("99CC99")
-         .url();
+         .url(stream);
 ``` 
